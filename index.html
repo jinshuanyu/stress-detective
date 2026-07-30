@@ -54,10 +54,10 @@ body {
 .header { text-align: center; margin-bottom: 6px; }
 .header h1 { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
 /* 五顆一定要排成一行，窄螢幕靠縮 padding 和 gap 塞進去 */
-.level-tabs { display: flex; gap: 6px; justify-content: center; flex-wrap: nowrap; }
+.level-tabs { display: flex; gap: 5px; justify-content: center; flex-wrap: nowrap; }
 .tab {
   background: #fff; color: var(--brown-light); border: 1px solid var(--peach);
-  border-radius: 9999px; padding: 6px 14px; font-size: 15px; font-weight: 600;
+  border-radius: 12px; padding: 7px 12px; font-size: 16px; font-weight: 600;
   cursor: pointer; font-family: inherit; line-height: 1.4; white-space: nowrap; flex: none;
 }
 .tab.active { background: var(--coral); color: #fff; border-color: var(--coral); font-weight: 700; }
@@ -169,21 +169,21 @@ body {
   text-decoration: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); line-height: 1.5; margin: 16px 0 8px;
 }
 .more-tools-label { text-align: center; margin: 10px 0 6px; font-size: .95rem; color: #888; }
-/* 用 grid 讓每顆等寬等高，不會出現 4+2 這種參差 */
-.more-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  max-width: 520px; margin: 0 auto 10px; padding: 0 8px; }
-.more-tools a { display: flex; align-items: center; justify-content: center; text-align: center;
-  padding: 8px 10px; background: #dbeafe; color: #1d4ed8; line-height: 1.4;
+/* 寬度依文字長短，但每顆內部不斷行；容器收窄讓它自然排成整齊的兩三顆一列 */
+.more-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+  max-width: 360px; margin: 0 auto 10px; padding: 0 8px; }
+.more-tools a { display: inline-block; white-space: nowrap;
+  padding: 8px 14px; background: #dbeafe; color: #1d4ed8; line-height: 1.4;
   text-decoration: none; border-radius: 20px; font-size: 15px; }
 .copyright { color: #999; font-size: .85rem; margin-top: 8px; }
 .credit { text-align: center; font-size: 11.5px; color: #b3a294; margin-top: 24px; line-height: 1.7; }
 
 [hidden] { display: none !important; }
 /* 主流手機直式寬度：Android 多為 360，iPhone 375〜430。以 360 為設計下限 */
-@media (max-width: 430px) {
-  .level-tabs { gap: 4px; }
-  .tab { padding: 6px 9px; font-size: 14px; }
-  .more-tools { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 480px) {
+  .level-tabs { gap: 3px; }
+  .tab { padding: 6px 4px; }
+  .more-tools a { padding: 8px 11px; }
 }
 @media (max-width: 380px) {
   .word-text { font-size: 26px; }
@@ -192,7 +192,8 @@ body {
 }
 /* 只有 iPhone SE 一代那種老機器才會到 320 */
 @media (max-width: 340px) {
-  .tab { padding: 5px 5px; }
+  .level-tabs { gap: 2px; }
+  .tab { padding: 5px 4px; font-size: 15px; }
   .tap-btn { width: 200px; }
 }
 </style>
@@ -207,7 +208,7 @@ body {
       <a href="https://www.facebook.com/mamahowma" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
       <a href="https://portaly.cc/mamahowma/support" target="_blank" rel="noopener" aria-label="Support on Portaly"><i class="fa-solid fa-mug-hot"></i></a>
     </div>
-    <a class="coffee-btn" href="https://portaly.cc/mamahowma/support" target="_blank" rel="noopener noreferrer">喜歡這個免費工具嗎？ ☕ 請杯咖啡鼓勵我</a>
+    <a class="coffee-btn" href="https://portaly.cc/mamahowma/support" target="_blank" rel="noopener noreferrer">喜歡這個免費工具嗎？<br>☕ 請杯咖啡鼓勵我</a>
     <div class="more-tools-label">🔡 More English Tools:</div>
     <div class="more-tools">
       <a href="https://jinshuanyu.github.io/Dolch-List-by-spelling-patterns/">Dolch 高頻詞拼讀</a>
@@ -234,9 +235,10 @@ const AUDIO_BASE = "https://jinshuanyu.github.io/word-mapper/audio";
 const LEVELS = [
   {
     tab: "第一關",
+    hint: "💡 嘴巴發幾次聲音，就是幾個音節",
     mode: "count",
     title: "第一關：這個字有幾個音節？",
-    sub: "熱身：拍手數數看有幾個音節？（先不用找重音）",
+    sub: "熱身：拍手數有幾個音節？（先不找重音）",
     words: [
       { w:"banana",     syl:["ba","na","na"],         ipa:"/bəˈnænə/",     stress:1, weak:[0,2],   zh:"🍌 香蕉", src:"food-1" },
       { w:"doctor",     syl:["doc","tor"],            ipa:"/ˈdɑktɚ/",      stress:0, weak:[1],     zh:"👨‍⚕️ 醫生", src:"health-1" },
@@ -250,6 +252,7 @@ const LEVELS = [
   },
   {
     tab: "第二關",
+    hint: "💡 排除輕音節，明顯不同的就是重音節",
     mode: "stress",
     title: "第二關：3 音節，重音在第 1 音節",
     sub: "先聽聽看重音節是什麼樣子",
@@ -266,6 +269,7 @@ const LEVELS = [
   },
   {
     tab: "第三關",
+    hint: "💡 排除輕音節，明顯不同的就是重音節",
     mode: "stress",
     title: "第三關：3 音節，重音位置不固定",
     sub: "不一樣的那個就是重音",
@@ -291,6 +295,7 @@ const LEVELS = [
   },
   {
     tab: "第四關",
+    hint: "💡 排除輕音節，明顯不同的就是重音節",
     mode: "stress",
     title: "第四關：4 音節",
     sub: "最後 3 個 -ation 字尾，注意它們的重音模式",
@@ -309,6 +314,7 @@ const LEVELS = [
   },
   {
     tab: "第五關",
+    hint: "💡 試試自己找出重音節",
     mode: "stress",
     title: "第五關：2 音節",
     sub: "回想前面幾關的重音節聽起來什麼感覺？",
@@ -476,10 +482,10 @@ function renderHero() {
       <div class="hero-sub">Stress Detective</div>
       <div class="hero-card">
         💡 <b>怎麼找？</b>
-        <div class="step">1️⃣ 先排除快速、輕弱的音節。</div>
-        <div class="step">2️⃣ 找出剩下最突出、最清楚的那一拍。</div>
+        <div class="step">1️⃣ 先排除快速、輕弱的音節</div>
+        <div class="step">2️⃣ 找剩下最突出、最清楚的那一拍</div>
         <div class="step">3️⃣ 那就是英文單字的<b>重音</b>！</div>
-        <div class="hero-note">（音標裡【<b>ˈ</b>】符號後面的就是重音，例如 <b>/rɪˈmɛmbɚ/</b>）</div>
+        <div class="hero-note">*音標裡 <b>ˈ</b> 符號後面的就是重音<br>例如 <b>/rɪˈmɛmbɚ/</b> 的 <b>/-mɛm-/</b> 是重音節</div>
       </div>
       <div><button class="btn-start" onclick="start()">開始</button></div>
     </div>`;
@@ -521,9 +527,7 @@ function renderLevel() {
       ${lv.sub ? `<p>${lv.sub}</p>` : ""}
       <div class="progress">${dots}</div>
     </div>
-    <div class="hint-box">${lv.mode === "count"
-      ? "💡 嘴巴發幾次聲音，就是幾個音節。"
-      : "💡 輕的音節先排除，最明顯的音節就是重音。"}</div>
+    <div class="hint-box">${lv.hint}</div>
     <div class="card-list">${cards}</div>
     ${done}`;
 }
