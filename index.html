@@ -27,8 +27,9 @@ body {
 .container { max-width: 520px; width: 100%; margin: 0 auto; padding: 14px 16px 0; flex: 1; }
 
 /* ---- 開場 ---- */
-.hero { display: flex; flex-direction: column; justify-content: center;
-  min-height: 78vh; text-align: center; gap: 8px; }
+/* 不再撐滿整個畫面，讓 footer 一開始就露出來 */
+.hero { display: flex; flex-direction: column; justify-content: flex-start;
+  padding-top: 10px; text-align: center; gap: 6px; }
 .hero-head { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .hero-icon { font-size: 32px; line-height: 1; }
 .hero-title { font-size: 28px; font-weight: 800; letter-spacing: 1px; color: var(--brown); }
@@ -36,8 +37,8 @@ body {
   margin-bottom: 12px; letter-spacing: .5px; }
 .hero-card {
   background: #fff; border: 1px solid var(--peach); border-radius: 14px;
-  padding: 18px 20px; text-align: left; font-size: 16px; line-height: 1.75;
-  margin: 4px 0 20px; box-shadow: var(--card-shadow);
+  padding: 16px 18px; text-align: left; font-size: 16px; line-height: 1.7;
+  margin: 4px 0 16px; box-shadow: var(--card-shadow);
 }
 .hero-card b { color: var(--coral-dark); }
 .hero-card .step { margin-top: 9px; }
@@ -158,8 +159,8 @@ body {
   box-shadow: var(--card-shadow); }
 
 /* ---- Footer ---- */
-.site-footer { background: #fff; margin-top: 48px; border-top: 1px solid #f0e2d6; }
-.site-footer .inner { max-width: 640px; margin: 0 auto; padding: 24px 16px; text-align: center; }
+.site-footer { background: #fff; margin-top: 24px; border-top: 1px solid #f0e2d6; }
+.site-footer .inner { max-width: 640px; margin: 0 auto; padding: 18px 16px; text-align: center; }
 .footer-icons { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; }
 .footer-icons a { color: var(--brown); font-size: 1.35rem; text-decoration: none; }
 .footer-icons a:hover { color: var(--coral-dark); }
@@ -252,7 +253,7 @@ const LEVELS = [
   },
   {
     tab: "第二關",
-    hint: "💡 排除輕音節，明顯不同的就是重音節",
+    hint: "💡 排除輕音節，明顯不同的就是重音",
     mode: "stress",
     title: "第二關：3 音節，重音在第 1 音節",
     sub: "先聽聽看重音節是什麼樣子",
@@ -269,7 +270,7 @@ const LEVELS = [
   },
   {
     tab: "第三關",
-    hint: "💡 排除輕音節，明顯不同的就是重音節",
+    hint: "💡 排除輕音節，明顯不同的就是重音",
     mode: "stress",
     title: "第三關：3 音節，重音位置不固定",
     sub: "不一樣的那個就是重音",
@@ -295,7 +296,7 @@ const LEVELS = [
   },
   {
     tab: "第四關",
-    hint: "💡 排除輕音節，明顯不同的就是重音節",
+    hint: "💡 排除輕音節，明顯不同的就是重音",
     mode: "stress",
     title: "第四關：4 音節",
     sub: "最後 3 個 -ation 字尾，注意它們的重音模式",
