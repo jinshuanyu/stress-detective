@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>重音偵探 Stress Detective</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{
+  --coral:#e8896b;
+  --coral-dark:#d9744f;
+  --peach:#ffe8d9;
+  --cream:#fff8f0;
+  --brown:#5c4a3d;
+  --brown-light:#8a7466;
+  --sage:#a8bfa0;
+  --card-shadow:0 6px 20px rgba(92,74,61,.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  background: var(--cream); color: var(--brown);
+  font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+.container { max-width: 520px; width: 100%; margin: 0 auto; padding: 14px 16px 0; flex: 1; }
+
+/* ---- 開場 ---- */
+.hero { display: flex; flex-direction: column; justify-content: center;
+  min-height: 78vh; text-align: center; gap: 8px; }
+.hero-head { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.hero-icon { font-size: 32px; line-height: 1; }
+.hero-title { font-size: 28px; font-weight: 800; letter-spacing: 1px; color: var(--brown); }
+.hero-sub { font-size: 20px; font-weight: 700; color: var(--brown-light);
+  margin-bottom: 12px; letter-spacing: .5px; }
+.hero-card {
+  background: #fff; border: 1px solid var(--peach); border-radius: 14px;
+  padding: 18px 20px; text-align: left; font-size: 16px; line-height: 1.75;
+  margin: 4px 0 20px; box-shadow: var(--card-shadow);
+}
+.hero-card b { color: var(--coral-dark); }
+.hero-card .step { margin-top: 9px; }
+.hero-card .hero-note { margin-top: 14px; font-size: 15px; color: var(--brown-light); line-height: 1.6; }
+.btn-start {
+  /* 跟說明卡裡的 highlight 字同一個橘 */
+  background: var(--coral-dark); color: #fff; border: none; border-radius: 14px;
+  padding: 17px 44px; font-size: 19px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(217,116,79,.32); font-family: inherit;
+}
+.btn-start:active { background: #c5643f; transform: scale(0.97); }
+
+/* ---- 頁首與關卡 ---- */
+.header { text-align: center; margin-bottom: 6px; }
+.header h1 { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+/* 五顆一定要排成一行，窄螢幕靠縮 padding 和 gap 塞進去 */
+.level-tabs { display: flex; gap: 6px; justify-content: center; flex-wrap: nowrap; }
+.tab {
+  background: #fff; color: var(--brown-light); border: 1px solid var(--peach);
+  border-radius: 9999px; padding: 6px 14px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: inherit; line-height: 1.4; white-space: nowrap; flex: none;
+}
+.tab.active { background: var(--coral); color: #fff; border-color: var(--coral); font-weight: 700; }
+.level-header { text-align: center; margin: 16px 0 10px; }
+.level-header h2 { font-size: 22px; font-weight: 800; line-height: 1.35; }
+.level-header p { font-size: 15px; color: var(--brown-light); margin: 5px 0 9px; line-height: 1.55; }
+.progress { display: flex; gap: 7px; justify-content: center; flex-wrap: wrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%;
+  background: var(--peach); transition: background .3s; }
+.dot.done { background: var(--coral); }
+.hint-box {
+  background: var(--peach); border-left: 3px solid var(--coral);
+  border-radius: 10px; padding: 11px 14px; font-size: 16px; color: var(--brown);
+  line-height: 1.6; margin: 0 0 12px;
+}
+
+/* ---- 卡片 ---- */
+.card-list { display: flex; flex-direction: column; gap: 12px; }
+.card { background: #fff; border-radius: 16px; padding: 14px 16px 15px;
+  box-shadow: var(--card-shadow); transition: background .35s; }
+.word-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.word-main { flex: 1; min-width: 0; }
+.word-text { font-size: 30px; font-weight: 800; letter-spacing: .5px; line-height: 1.25; }
+.word-zh { display: block; font-size: 16px; font-weight: 600;
+  color: var(--brown-light); line-height: 1.4; }
+.icon-btn { background: var(--cream); border: 1px solid var(--peach); border-radius: 10px;
+  font-size: 20px; cursor: pointer; width: 46px; height: 44px; flex: none; font-family: inherit; }
+.icon-btn:active { background: var(--peach); }
+
+.instruction { font-size: 18px; color: var(--brown); margin-bottom: 10px; font-weight: 700; }
+/* 跟音節按鈕同一組視覺；寬度寫死，接上 ×3 時才不會跳動 */
+.tap-btn {
+  background: var(--cream); color: var(--brown); border: 2px solid var(--peach);
+  border-radius: 14px; padding: 15px 20px; font-size: 20px; font-weight: 700;
+  cursor: pointer; display: block; margin: 0 auto; width: 220px;
+  white-space: nowrap; font-family: inherit; transition: transform .08s, background .15s;
+}
+.tap-btn:active { background: var(--peach); transform: scale(.96); }
+
+.syllable-row { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+.syl-btn {
+  border: 2px solid var(--peach); background: var(--cream); border-radius: 14px;
+  min-width: 66px; padding: 15px 16px; cursor: pointer; font-family: inherit;
+  font-size: 24px; font-weight: 700; color: var(--brown-light); transition: all .18s;
+  line-height: 1;
+}
+.syl-btn:active { transform: scale(.95); }
+.syl-btn.correct { background: #e8f0e4; border-color: var(--sage); color: #4a6440;
+  transform: scale(1.08); animation: pop .4s; }
+.syl-btn.wrong { background: #fbe3dc; border-color: var(--coral); color: var(--coral-dark);
+  animation: shake .34s; }
+@keyframes pop   { 0%{transform:scale(1)} 45%{transform:scale(1.22)} 100%{transform:scale(1.08)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)}
+                   40%{transform:translateX(6px)} 60%{transform:translateX(-4px)}
+                   80%{transform:translateX(4px)} }
+/* 答對就整張卡變綠，答對的當下立刻變，不等揭曉 */
+.card.solved { background: #eef4ec; }
+.card.solved .icon-btn { background: #fff; border-color: #d4e2ce; }
+.card.solved .ipa-line span { border-color: #d4e2ce; }
+.card.solved .feedback.ok { background: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .syl-btn.correct, .syl-btn.wrong { animation: none; }
+  .card { transition: none; }
+}
+
+.feedback { margin-top: 10px; padding: 10px 13px; border-radius: 10px; font-size: 16px;
+  font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; line-height: 1.5; }
+.feedback.ok { background: #eef4ec; color: #4a6440; }
+.feedback.no { background: #fdeee9; color: var(--coral-dark); }
+.btn-small { background: var(--coral); color: #fff; border: none; border-radius: 9999px;
+  padding: 6px 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+  margin-left: auto; font-family: inherit; }
+.btn-retry { background: #fff; border: 1px solid var(--peach); border-radius: 9999px;
+  padding: 5px 13px; font-size: 15px; font-weight: 600; cursor: pointer;
+  font-family: inherit; color: var(--brown); }
+
+/* ---- 揭曉 ---- */
+.reveal { display: flex; gap: 6px; justify-content: center; align-items: baseline;
+  flex-wrap: wrap; margin: 12px 0 0; }
+.syl-piece { font-weight: 600; }
+.syl-piece.stress { font-size: 24px; font-weight: 800; color: var(--brown);
+  border-bottom: 3px solid var(--coral); padding-bottom: 1px; }
+.syl-piece.weak   { font-size: 22px; font-weight: 400; color: #b3a294; }
+.syl-piece.plain  { font-size: 23px; font-weight: 600; color: var(--brown-light); }
+.reveal .sep { font-size: 19px; color: #d8c6b6; }
+.ipa-line { text-align: center; margin-top: 10px; }
+.ipa-line span {
+  /* Noto Sans TC 沒有 IPA 擴充區的字符，缺的會逐字回退到後面這幾套 */
+  display: inline-block;
+  font-family: "Noto Sans TC", "Segoe UI", "Charis SIL", "Doulos SIL", "Lucida Sans Unicode", sans-serif;
+  font-size: 18px; color: var(--brown-light); letter-spacing: .3px;
+  background: #fff; border: 1px solid var(--peach);
+  border-radius: 9999px; padding: 3px 15px;
+}
+
+.level-done { text-align: center; margin-top: 20px; padding: 20px; background: #fff;
+  border: 1px solid var(--peach); border-radius: 14px; font-size: 18px; font-weight: 700;
+  box-shadow: var(--card-shadow); }
+
+/* ---- Footer ---- */
+.site-footer { background: #fff; margin-top: 48px; border-top: 1px solid #f0e2d6; }
+.site-footer .inner { max-width: 640px; margin: 0 auto; padding: 24px 16px; text-align: center; }
+.footer-icons { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; }
+.footer-icons a { color: var(--brown); font-size: 1.35rem; text-decoration: none; }
+.footer-icons a:hover { color: var(--coral-dark); }
+.coffee-btn {
+  display: inline-block; background: linear-gradient(to right, #fbbf24, #f97316); color: #fff;
+  font-weight: 500; font-size: 1rem; text-align: center; padding: 10px 20px; border-radius: 9999px;
+  text-decoration: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); line-height: 1.5; margin: 16px 0 8px;
+}
+.more-tools-label { text-align: center; margin: 10px 0 6px; font-size: .95rem; color: #888; }
+/* 用 grid 讓每顆等寬等高，不會出現 4+2 這種參差 */
+.more-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  max-width: 520px; margin: 0 auto 10px; padding: 0 8px; }
+.more-tools a { display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 8px 10px; background: #dbeafe; color: #1d4ed8; line-height: 1.4;
+  text-decoration: none; border-radius: 20px; font-size: 15px; }
+.copyright { color: #999; font-size: .85rem; margin-top: 8px; }
+.credit { text-align: center; font-size: 11.5px; color: #b3a294; margin-top: 24px; line-height: 1.7; }
+
+[hidden] { display: none !important; }
+/* 主流手機直式寬度：Android 多為 360，iPhone 375〜430。以 360 為設計下限 */
+@media (max-width: 430px) {
+  .level-tabs { gap: 4px; }
+  .tab { padding: 6px 9px; font-size: 14px; }
+  .more-tools { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 380px) {
+  .word-text { font-size: 26px; }
+  .syl-btn { min-width: 56px; padding: 14px 11px; font-size: 21px; }
+  .level-header h2 { font-size: 20px; }
+}
+/* 只有 iPhone SE 一代那種老機器才會到 320 */
+@media (max-width: 340px) {
+  .tab { padding: 5px 5px; }
+  .tap-btn { width: 200px; }
+}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<footer class="site-footer">
+  <div class="inner">
+    <div class="footer-icons">
+      <a href="mailto:mamahowma@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
+      <a href="https://www.facebook.com/mamahowma" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://portaly.cc/mamahowma/support" target="_blank" rel="noopener" aria-label="Support on Portaly"><i class="fa-solid fa-mug-hot"></i></a>
+    </div>
+    <a class="coffee-btn" href="https://portaly.cc/mamahowma/support" target="_blank" rel="noopener noreferrer">喜歡這個免費工具嗎？ ☕ 請杯咖啡鼓勵我</a>
+    <div class="more-tools-label">🔡 More English Tools:</div>
+    <div class="more-tools">
+      <a href="https://jinshuanyu.github.io/Dolch-List-by-spelling-patterns/">Dolch 高頻詞拼讀</a>
+      <a href="https://jinshuanyu.github.io/vowel-detective/">母音偵探</a>
+      <a href="https://jinshuanyu.github.io/word-mapper/">英文拼字 x 聲音對照</a>
+      <a href="https://jinshuanyu.github.io/grow-a-sentence/">句子擴寫</a>
+      <a href="https://jinshuanyu.github.io/ipa-guide/">IPA 音標指南</a>
+      <a href="https://jinshuanyu.github.io/english-reader/">英語分句朗讀</a>
+    </div>
+    <p class="copyright">© 2026 Christina Yu. All Rights Reserved.</p>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   資料：50 字，全部經 Wiktionary (General American) 查證
+   syl    = 拼字切分（求易讀，語音權威以 ipa 為準）
+   stress = 重音音節序號（0 起算）
+   weak   = 母音已弱化的音節序號（/ə ɪ ɚ/）
+   src    = word-mapper 的清單資料夾，用來組音檔網址
+   ========================================================= */
+const AUDIO_BASE = "https://jinshuanyu.github.io/word-mapper/audio";
+
+const LEVELS = [
+  {
+    tab: "第一關",
+    mode: "count",
+    title: "第一關：這個字有幾個音節？",
+    sub: "熱身：拍手數數看有幾個音節？（先不用找重音）",
+    words: [
+      { w:"banana",     syl:["ba","na","na"],         ipa:"/bəˈnænə/",     stress:1, weak:[0,2],   zh:"🍌 香蕉", src:"food-1" },
+      { w:"doctor",     syl:["doc","tor"],            ipa:"/ˈdɑktɚ/",      stress:0, weak:[1],     zh:"👨‍⚕️ 醫生", src:"health-1" },
+      { w:"impossible", syl:["im","pos","si","ble"],  ipa:"/ɪmˈpɑsəbəl/",  stress:1, weak:[0,2,3], zh:"❌ 不可能的", src:"adjs-6" },
+      { w:"elephant",   syl:["el","e","phant"],       ipa:"/ˈɛləfənt/",    stress:0, weak:[1,2],   zh:"🐘 大象", src:"animals-1" },
+      { w:"again",      syl:["a","gain"],             ipa:"/əˈɡɛn/",       stress:1, weak:[0],     zh:"🔁 再次", src:"adv-2" },
+      { w:"information",syl:["in","for","ma","tion"], ipa:"/ɪnfɚˈmeɪʃən/", stress:2, weak:[0,1,3], zh:"ℹ️ 資訊", src:"nouns-3" },
+      { w:"tomato",     syl:["to","ma","to"],         ipa:"/təˈmeɪtoʊ/",   stress:1, weak:[0],     zh:"🍅 番茄", src:"food-1" },
+      { w:"cookie",     syl:["cook","ie"],            ipa:"/ˈkʊki/",       stress:0, weak:[],      zh:"🍪 餅乾", src:"food-3" },
+    ]
+  },
+  {
+    tab: "第二關",
+    mode: "stress",
+    title: "第二關：3 音節，重音在第 1 音節",
+    sub: "先聽聽看重音節是什麼樣子",
+    words: [
+      { w:"animal",    syl:["an","i","mal"],     ipa:"/ˈænəməl/",  stress:0, weak:[1,2], zh:"🐾 動物", src:"animals-1" },
+      { w:"elephant",  syl:["el","e","phant"],   ipa:"/ˈɛləfənt/", stress:0, weak:[1,2], zh:"🐘 大象", src:"animals-1" },
+      { w:"beautiful", syl:["beau","ti","ful"],  ipa:"/ˈbjutəfəl/",stress:0, weak:[1,2], zh:"美麗的", src:"people-2" },
+      { w:"festival",  syl:["fes","ti","val"],   ipa:"/ˈfɛstəvəl/",stress:0, weak:[1,2], zh:"🎉 節慶", src:"holidays" },
+      { w:"terrible",  syl:["ter","ri","ble"],   ipa:"/ˈtɛrəbəl/", stress:0, weak:[1,2], zh:"😨 糟糕的", src:"adjs-3" },
+      { w:"character", syl:["char","ac","ter"],  ipa:"/ˈkɛrəktɚ/", stress:0, weak:[1,2], zh:"🎭 角色", src:"nouns-3" },
+      { w:"accident",  syl:["ac","ci","dent"],   ipa:"/ˈæksɪdənt/",stress:0, weak:[1,2], zh:"🚗 意外", src:"nouns-1" },
+      { w:"furniture", syl:["fur","ni","ture"],  ipa:"/ˈfɝnɪtʃɚ/", stress:0, weak:[1,2], zh:"🪑 家具", src:"house-2" },
+    ]
+  },
+  {
+    tab: "第三關",
+    mode: "stress",
+    title: "第三關：3 音節，重音位置不固定",
+    sub: "不一樣的那個就是重音",
+    words: [
+      { w:"citizen",   syl:["cit","i","zen"],    ipa:"/ˈsɪtəzən/",  stress:0, weak:[1,2], zh:"公民", src:"world-1" },
+      { w:"recycle",   syl:["re","cy","cle"],    ipa:"/riˈsaɪkəl/", stress:1, weak:[2],   zh:"♻️ 回收", src:"1C-4" },
+      { w:"horrible",  syl:["hor","ri","ble"],   ipa:"/ˈhɔrəbəl/",  stress:0, weak:[1,2], zh:"😱 可怕的", src:"adjs-3" },
+      { w:"disappear", syl:["dis","ap","pear"],  ipa:"/dɪsəˈpɪr/",  stress:2, weak:[0,1], zh:"👻 消失", src:"1C-2" },
+      { w:"electric",  syl:["e","lec","tric"],   ipa:"/ɪˈlɛktrɪk/", stress:1, weak:[0,2], zh:"⚡ 電的", src:"adjs-4" },
+      { w:"colorful",  syl:["col","or","ful"],   ipa:"/ˈkʌlɚfəl/",  stress:0, weak:[1,2], zh:"🌈 彩色的", src:"adjs-4" },
+      { w:"forgotten", syl:["for","got","ten"],  ipa:"/fɚˈɡɑtən/",  stress:1, weak:[0,2], zh:"忘記(過去分詞)", src:"ABC-misc" },
+      { w:"positive",  syl:["pos","i","tive"],   ipa:"/ˈpɑzətɪv/",  stress:0, weak:[1,2], zh:"➕ 正面的", src:"adjs-6" },
+      // ↓ 以下 8 個字的輕音節母音沒有弱化，不能靠「含糊」判斷，只能聽長短
+      { w:"tomato",    syl:["to","ma","to"],     ipa:"/təˈmeɪtoʊ/", stress:1, weak:[0],   zh:"🍅 番茄", src:"food-1" },
+      { w:"octopus",   syl:["oc","to","pus"],    ipa:"/ˈɑktəpəs/",  stress:0, weak:[1,2], zh:"🐙 章魚", src:"animals-2" },
+      { w:"museum",    syl:["mu","se","um"],     ipa:"/mjuˈziəm/",  stress:1, weak:[2],   zh:"🏛️ 博物館", src:"places-3" },
+      { w:"vacation",  syl:["va","ca","tion"],   ipa:"/veɪˈkeɪʃən/",stress:1, weak:[2],   zh:"🏖 假期", src:"holidays" },
+      { w:"dinosaur",  syl:["di","no","saur"],   ipa:"/ˈdaɪnəsɔr/", stress:0, weak:[1],   zh:"🦕 恐龍", src:"animals-2" },
+      { w:"piano",     syl:["pi","a","no"],      ipa:"/piˈænoʊ/",   stress:1, weak:[],    zh:"🎹 鋼琴", src:"sports-3" },
+      { w:"satellite", syl:["sat","el","lite"],  ipa:"/ˈsætəlaɪt/", stress:0, weak:[1],   zh:"📡 人造衛星", src:"space" },
+      { w:"crocodile", syl:["croc","o","dile"],  ipa:"/ˈkrɑkədaɪl/",stress:0, weak:[1],   zh:"🐊 鱷魚", src:"animals-1" },
+    ]
+  },
+  {
+    tab: "第四關",
+    mode: "stress",
+    title: "第四關：4 音節",
+    sub: "最後 3 個 -ation 字尾，注意它們的重音模式",
+    words: [
+      { w:"fashionable", syl:["fash","ion","a","ble"], ipa:"/ˈfæʃənəbəl/",  stress:0, weak:[1,2,3], zh:"👗 時尚的", src:"adjs-3" },
+      { w:"impossible",  syl:["im","pos","si","ble"],  ipa:"/ɪmˈpɑsəbəl/",  stress:1, weak:[0,2,3], zh:"❌ 不可能的", src:"adjs-6" },
+      { w:"photographer",syl:["pho","tog","ra","pher"],ipa:"/fəˈtɑɡrəfɚ/",  stress:1, weak:[0,2,3], zh:"📸 攝影師", src:"occupations-1" },
+      { w:"actually",    syl:["ac","tu","al","ly"],    ipa:"/ˈæktʃuəli/",   stress:0, weak:[2],     zh:"📌 實際上", src:"adv-2" },
+      { w:"available",   syl:["a","vail","a","ble"],   ipa:"/əˈveɪləbəl/",  stress:1, weak:[0,2,3], zh:"✔️ 可用的", src:"adjs-1" },
+      { w:"difficulty",  syl:["dif","fi","cul","ty"],  ipa:"/ˈdɪfɪkəlti/",  stress:0, weak:[1,2],   zh:"😓 困難", src:"nouns-3" },
+      { w:"intelligent", syl:["in","tel","li","gent"], ipa:"/ɪnˈtɛlədʒənt/",stress:1, weak:[0,2,3], zh:"🧠 聰明的", src:"people-5" },
+      { w:"invitation",  syl:["in","vi","ta","tion"],  ipa:"/ɪnvəˈteɪʃən/", stress:2, weak:[0,1,3], zh:"💌 邀請", src:"nouns-1" },
+      { w:"information", syl:["in","for","ma","tion"], ipa:"/ɪnfɚˈmeɪʃən/", stress:2, weak:[0,1,3], zh:"ℹ️ 資訊", src:"nouns-3" },
+      { w:"operation",   syl:["op","er","a","tion"],   ipa:"/ɑpəˈreɪʃən/",  stress:2, weak:[1,3],   zh:"⚙️ 操作", src:"nouns-1" },
+    ]
+  },
+  {
+    tab: "第五關",
+    mode: "stress",
+    title: "第五關：2 音節",
+    sub: "回想前面幾關的重音節聽起來什麼感覺？",
+    words: [
+      { w:"again",   syl:["a","gain"],   ipa:"/əˈɡɛn/",    stress:1, weak:[0], zh:"🔁 再次", src:"adv-2" },
+      { w:"doctor",  syl:["doc","tor"],  ipa:"/ˈdɑktɚ/",   stress:0, weak:[1], zh:"👨‍⚕️ 醫生", src:"health-1" },
+      { w:"protect", syl:["pro","tect"], ipa:"/prəˈtɛkt/", stress:1, weak:[0], zh:"🛡 保護", src:"1A-2" },
+      { w:"morning", syl:["morn","ing"], ipa:"/ˈmɔrnɪŋ/",  stress:0, weak:[1], zh:"🌅 早晨", src:"time-2" },
+      { w:"cookie",  syl:["cook","ie"],  ipa:"/ˈkʊki/",    stress:0, weak:[],  zh:"🍪 餅乾", src:"food-3" },
+      { w:"explain", syl:["ex","plain"], ipa:"/ɪkˈspleɪn/",stress:1, weak:[0], zh:"💡 解釋", src:"1C-2" },
+      { w:"until",   syl:["un","til"],   ipa:"/ʌnˈtɪl/",   stress:1, weak:[],  zh:"直到；為止", src:"prep-3" },
+      { w:"windy",   syl:["win","dy"],   ipa:"/ˈwɪndi/",   stress:0, weak:[],  zh:"🍃 有風的", src:"weather-1" },
+    ]
+  }
+];
+
+const ALL_WORDS = LEVELS.reduce((a, l) => a.concat(l.words), []);
+function findWord(word) { return ALL_WORDS.find(x => x.w === word); }
+function mp3Url(word) {
+  const w = findWord(word);
+  return AUDIO_BASE + "/" + w.src + "/" + w.w + ".mp3";
+}
+
+/* =========================================================
+   音訊
+   第 1 層：word-mapper 線上 mp3
+   第 2 層：系統內建語音（只用 localService，離線可用）
+   第 3 層：Web Audio 合成小鼓，完全不需網路
+   ========================================================= */
+let audioCtx = null;
+function ctx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+let usingFallback = false;
+const audioCache = {};
+
+let localVoice = null;
+function pickLocalVoice() {
+  if (localVoice) return localVoice;
+  if (!window.speechSynthesis) return null;
+  const all = window.speechSynthesis.getVoices();
+  // 只要裝在裝置上的語音，雲端語音離線會失敗
+  const local = all.filter(v => v.lang && v.lang.startsWith("en") && v.localService);
+  const pool = local.length ? local : all.filter(v => v.lang && v.lang.startsWith("en"));
+  const us = pool.filter(v => v.lang === "en-US");
+  localVoice = (us[0] || pool[0]) || null;
+  return localVoice;
+}
+if (window.speechSynthesis) {
+  pickLocalVoice();
+  window.speechSynthesis.onvoiceschanged = () => { localVoice = null; pickLocalVoice(); };
+}
+
+function speakFallback(word) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = "en-US"; u.rate = 0.8;
+  const v = pickLocalVoice();
+  if (v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+
+function playWord(word) {
+  if (usingFallback) { speakFallback(word); return; }
+  let a = audioCache[word];
+  if (!a) { a = new Audio(mp3Url(word)); a.preload = "auto"; audioCache[word] = a; }
+  let settled = false;
+  // 抓不到 mp3 就靜靜改用系統語音，不打擾使用者
+  const fail = () => {
+    if (settled) return;
+    settled = true; usingFallback = true;
+    speakFallback(word);
+  };
+  a.onerror = fail;
+  a.onplaying = () => { settled = true; };
+  setTimeout(() => { if (!settled && a.readyState === 0) fail(); }, 3000);
+  a.currentTime = 0;
+  const p = a.play();
+  if (p && p.catch) p.catch(fail);
+}
+
+/* 一段極短的噪音爆點，拍手聲的積木 */
+function noiseBurst(t, dur, level, freq, q) {
+  const c = ctx();
+  const len = Math.max(1, Math.floor(c.sampleRate * dur));
+  const buf = c.createBuffer(1, len, c.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+  const src = c.createBufferSource(); src.buffer = buf;
+  const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q;
+  const hp = c.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 600;
+  const g = c.createGain();
+  g.gain.setValueAtTime(level, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(bp).connect(hp).connect(g).connect(c.destination);
+  src.start(t);
+}
+
+/* 拍手：三個間隔幾毫秒的爆點（手掌拍擊的多重反射）+ 一小段殘響尾巴 */
+function playClap() {
+  try {
+    const t0 = ctx().currentTime;
+    noiseBurst(t0,         0.013, 0.50, 1500, 1.4);
+    noiseBurst(t0 + 0.009, 0.013, 0.35, 1800, 1.4);
+    noiseBurst(t0 + 0.019, 0.012, 0.22, 2100, 1.6);
+    noiseBurst(t0 + 0.028, 0.110, 0.16, 1100, 0.9);
+  } catch (e) {}
+}
+
+function playCorrect() {
+  const c = ctx(), t0 = c.currentTime;
+  [[660, 0], [990, 0.085]].forEach(([f, dt]) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t0 + dt);
+    g.gain.exponentialRampToValueAtTime(0.25, t0 + dt + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.24);
+    o.connect(g).connect(c.destination);
+    o.start(t0 + dt); o.stop(t0 + dt + 0.26);
+  });
+}
+
+function playWrong() {
+  const c = ctx(), t = c.currentTime;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = "square";
+  o.frequency.setValueAtTime(150, t);
+  o.frequency.exponentialRampToValueAtTime(92, t + 0.17);
+  g.gain.setValueAtTime(0.13, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.19);
+  o.connect(g).connect(c.destination);
+  o.start(t); o.stop(t + 0.21);
+}
+
+/* ---------------- 狀態 ---------------- */
+let currentLevel = -1;
+const completed = {};
+const cardStates = {};
+function key(li, wi) { return li + "-" + wi; }
+function state(li, wi) {
+  const k = key(li, wi);
+  if (!cardStates[k]) cardStates[k] = {
+    phase: LEVELS[li].mode === "count" ? "tap" : "stress",
+    guess: null, guessResult: null,
+    taps: 0, tapResult: null, tapTimer: null
+  };
+  return cardStates[k];
+}
+
+/* ---------------- 畫面 ---------------- */
+const app = document.getElementById("app");
+function render() { currentLevel === -1 ? renderHero() : renderLevel(); }
+
+function renderHero() {
+  app.innerHTML = `
+    <div class="hero">
+      <div class="hero-head">
+        <span class="hero-icon">🎧</span>
+        <span class="hero-title">重音偵探</span>
+      </div>
+      <div class="hero-sub">Stress Detective</div>
+      <div class="hero-card">
+        💡 <b>怎麼找？</b>
+        <div class="step">1️⃣ 先排除快速、輕弱的音節。</div>
+        <div class="step">2️⃣ 找出剩下最突出、最清楚的那一拍。</div>
+        <div class="step">3️⃣ 那就是英文單字的<b>重音</b>！</div>
+        <div class="hero-note">（音標裡【<b>ˈ</b>】符號後面的就是重音，例如 <b>/rɪˈmɛmbɚ/</b>）</div>
+      </div>
+      <div><button class="btn-start" onclick="start()">開始</button></div>
+    </div>`;
+}
+function start() { ctx(); currentLevel = 0; render(); }
+function switchLevel(i) { currentLevel = i; window.scrollTo(0, 0); render(); }
+
+function renderLevel() {
+  const lv = LEVELS[currentLevel];
+  const doneCount = lv.words.filter((_, i) => completed[key(currentLevel, i)]).length;
+  const allDone = doneCount === lv.words.length;
+
+  const tabs = LEVELS.map((l, i) =>
+    `<button class="tab ${i === currentLevel ? "active" : ""}" onclick="switchLevel(${i})">${l.tab}</button>`
+  ).join("");
+  const dots = lv.words.map((_, i) =>
+    `<span class="dot ${completed[key(currentLevel, i)] ? "done" : ""}"></span>`
+  ).join("");
+  const cards = lv.words.map((_, i) => renderCard(currentLevel, i)).join("");
+
+  let done = "";
+  if (allDone && currentLevel < LEVELS.length - 1) {
+    done = `<div class="level-done">好棒！這一關完成了 🎉
+      <div style="margin-top:12px"><button class="btn-start" onclick="switchLevel(${currentLevel + 1})">下一關 →</button></div>
+    </div>`;
+  } else if (allDone) {
+    done = `<div class="level-done">太厲害了！五關全部破關 🎉🎧
+      <div style="font-weight:400;font-size:16px;margin-top:8px;color:#8a7466">
+        你已經聽得出重音在哪裡了！</div></div>`;
+  }
+
+  app.innerHTML = `
+    <div class="header">
+      <h1>🎧 重音偵探</h1>
+      <div class="level-tabs">${tabs}</div>
+    </div>
+    <div class="level-header">
+      <h2>${lv.title}</h2>
+      ${lv.sub ? `<p>${lv.sub}</p>` : ""}
+      <div class="progress">${dots}</div>
+    </div>
+    <div class="hint-box">${lv.mode === "count"
+      ? "💡 嘴巴發幾次聲音，就是幾個音節。"
+      : "💡 輕的音節先排除，最明顯的音節就是重音。"}</div>
+    <div class="card-list">${cards}</div>
+    ${done}`;
+}
+
+function renderCard(li, wi) {
+  const w = LEVELS[li].words[wi];
+  const s = state(li, wi);
+  const k = key(li, wi);
+  const countMode = LEVELS[li].mode === "count";
+  let body = "";
+
+  if (s.phase === "tap") {
+    let fb = "";
+    if (s.tapResult === "wrong") {
+      fb = `<div class="feedback no">❌ 答錯了，你拍了 ${s.taps} 下
+        <button class="btn-retry" onclick="resetTap('${k}')">🔄 重來</button></div>`;
+    }
+    body = `<p class="instruction">先聽，然後拍出音節數</p>
+      <button class="tap-btn" onclick="tap('${k}')">👏 拍${s.taps > 0 ? " ×" + s.taps : ""}</button>${fb}`;
+  }
+
+  if (s.phase === "stress") {
+    const btns = w.syl.map((_, i) => {
+      let cls = "syl-btn";
+      if (s.guess === i && s.guessResult === "correct") cls += " correct";
+      if (s.guess === i && s.guessResult === "wrong") cls += " wrong";
+      return `<button class="${cls}" onclick="guess('${k}',${i})">●</button>`;
+    }).join("");
+    let fb = "";
+    if (s.guessResult === "wrong") {
+      fb = `<div class="feedback no">❌ 答錯了
+        <button class="btn-retry" onclick="resetGuess('${k}')">🔄 重來</button></div>`;
+    }
+    body = `<p class="instruction">重音在哪一個音節？</p>
+      <div class="syllable-row">${btns}</div>${fb}`;
+  }
+
+  if (s.phase === "done") {
+    const pieces = w.syl.map((syl, i) => {
+      if (countMode) return `<span class="syl-piece plain">${syl}</span>`;
+      const cls = i === w.stress ? "stress" : (w.weak.includes(i) ? "weak" : "plain");
+      const txt = i === w.stress ? syl.toUpperCase() : syl;
+      return `<span class="syl-piece ${cls}">${txt}</span>`;
+    }).join(`<span class="sep">·</span>`);
+    // 數音節那關要講出幾個音節；找重音那幾關不寫字，靠卡片變綠表示答對
+    body = (countMode ? `<div class="feedback ok">✅ 答對了，${w.syl.length} 個音節</div>` : "")
+      + `<div class="reveal">${pieces}</div>
+      <div class="ipa-line"><span>${w.ipa}</span></div>`;
+  }
+
+  // 答對的那一刻就變綠（不等 900ms 後的揭曉），畫面才不會空著
+  const answered = countMode ? (s.tapResult === "correct") : (s.guessResult === "correct");
+  const solved = (s.phase === "done" || answered) ? " solved" : "";
+  return `<div class="card${solved}">
+    <div class="word-row">
+      <div class="word-main">
+        <span class="word-text">${w.w}</span>
+        <span class="word-zh">${w.zh}</span>
+      </div>
+      <button class="icon-btn" onclick="playWord('${w.w}')" aria-label="聽發音" title="聽發音">🔊</button>
+    </div>
+    <div>${body}</div>
+  </div>`;
+}
+
+/* ---------------- 互動 ---------------- */
+function tap(k) {
+  const s = cardStates[k];
+  if (!s || s.phase !== "tap" || s.tapResult === "correct") return;
+  playClap();
+  s.tapResult = null;
+  s.taps++;
+  clearTimeout(s.tapTimer);
+  const [li, wi] = k.split("-").map(Number);
+  const need = LEVELS[li].words[wi].syl.length;
+  // 停手 1.2 秒後才判斷，讓使用者拍完整串
+  s.tapTimer = setTimeout(() => {
+    if (s.taps === need) {
+      s.tapResult = "correct";
+      playCorrect();
+      // 揭曉的同時再唸一次，讓拼字切分和聲音對上
+      setTimeout(() => {
+        s.phase = "done"; completed[k] = true; render();
+        playWord(LEVELS[li].words[wi].w);
+      }, 900);
+    } else {
+      s.tapResult = "wrong";
+      playWrong();
+    }
+    render();
+  }, 1200);
+  render();
+}
+function resetTap(k) {
+  const s = cardStates[k];
+  clearTimeout(s.tapTimer);
+  s.taps = 0; s.tapResult = null;
+  render();
+}
+
+function guess(k, i) {
+  const s = cardStates[k];
+  if (s.guessResult === "correct") return;
+  const [li, wi] = k.split("-").map(Number);
+  const w = LEVELS[li].words[wi];
+  s.guess = i;
+  s.guessResult = (i === w.stress) ? "correct" : "wrong";
+  if (s.guessResult === "correct") {
+    playCorrect();
+    // 揭曉的同時再唸一次，讓拼字切分和聲音對上
+    setTimeout(() => {
+      s.phase = "done"; completed[k] = true; render();
+      playWord(w.w);
+    }, 900);
+  } else {
+    playWrong();
+  }
+  render();
+}
+function resetGuess(k) { const s = cardStates[k]; s.guess = null; s.guessResult = null; render(); }
+
+render();
+</script>
+</body>
+</html>
