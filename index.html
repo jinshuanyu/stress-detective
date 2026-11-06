@@ -75,6 +75,24 @@ body {
   line-height: 1.6; margin: 0 0 12px;
 }
 
+/* ---- 台語對照（只有兩音節那一關用） ---- */
+.taigi-box { background: #fff; border: 1px solid var(--peach); border-radius: 12px;
+  padding: 10px 12px; margin: 0 0 12px; box-shadow: var(--card-shadow); }
+.taigi-row { display: flex; align-items: center; gap: 10px; padding: 6px 2px; }
+.taigi-row + .taigi-row { border-top: 1px dashed var(--peach); }
+.taigi-mark { font-size: 19px; letter-spacing: 2px; color: var(--coral); flex: none; }
+.taigi-main { flex: 1; min-width: 0; line-height: 1.45; }
+.taigi-main b { font-size: 16px; }
+.taigi-rom { font-size: 15px; color: var(--brown-light); }
+.taigi-note { font-size: 15px; color: var(--brown-light); }
+.taigi-play { background: var(--cream); border: 1px solid var(--peach); border-radius: 9999px;
+  padding: 6px 12px; font-size: 15px; font-weight: 600; color: var(--brown);
+  cursor: pointer; font-family: inherit; white-space: nowrap; flex: none; }
+.taigi-play:active { background: var(--peach); }
+.taigi-badge { text-align: center; margin-top: 9px; font-size: 15px; color: var(--brown-light); }
+.taigi-badge .m { color: var(--coral); letter-spacing: 2px; }
+.taigi-badge b { color: var(--brown); }
+
 /* ---- 卡片 ---- */
 .card-list { display: flex; flex-direction: column; gap: 12px; }
 .card { background: #fff; border-radius: 16px; padding: 14px 16px 15px;
@@ -177,6 +195,8 @@ body {
   padding: 8px 14px; background: #dbeafe; color: #1d4ed8; line-height: 1.4;
   text-decoration: none; border-radius: 20px; font-size: 15px; }
 .copyright { color: #999; font-size: .85rem; margin-top: 8px; }
+.taigi-credit { font-size: 13px; color: #a08f80; line-height: 1.6; margin-bottom: 14px; }
+.taigi-credit a { color: #8a7466; }
 .credit { text-align: center; font-size: 11.5px; color: #b3a294; margin-top: 24px; line-height: 1.7; }
 
 [hidden] { display: none !important; }
@@ -204,6 +224,7 @@ body {
 
 <footer class="site-footer">
   <div class="inner">
+    <p class="taigi-credit">台語音檔來源：<a href="https://sutian.moe.edu.tw/" target="_blank" rel="noopener">教育部《臺灣台語常用詞辭典》</a>，<a href="https://creativecommons.org/licenses/by-nd/3.0/tw/" target="_blank" rel="noopener">CC BY-ND 3.0 TW</a></p>
     <div class="footer-icons">
       <a href="mailto:mamahowma@gmail.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
       <a href="https://www.facebook.com/mamahowma" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
@@ -317,6 +338,7 @@ const LEVELS = [
     tab: "第五關",
     hint: "💡 試試自己找出重音節",
     mode: "stress",
+    taigi: true,          // 這關借台語的早頓／後尾當高低對照
     title: "第五關：2 音節",
     sub: "回想前面幾關的重音節聽起來什麼感覺？",
     words: [
@@ -400,6 +422,31 @@ function playWord(word) {
   const p = a.play();
   if (p && p.catch) p.catch(fail);
 }
+
+/* ---- 台語對照音檔（本地檔案，CC BY-ND，只改檔名未經任何處理）---- */
+const TAIGI = {
+  first:  { file:"tsa-tng", mark:"●○", name:"早頓", rom:"tsá-tǹg", shape:"高 → 低" },
+  second: { file:"au-bue",  mark:"○●", name:"後尾", rom:"āu-bué",  shape:"低 → 高" }
+};
+let taigiOk = true;              // 音檔載不到就把按鈕藏起來，不報錯
+const taigiAudio = {};
+function taigiEl(file) {
+  if (!taigiAudio[file]) {
+    const a = new Audio("audio/taigi-" + file + ".mp3");
+    a.preload = "auto";
+    a.onerror = () => { if (taigiOk) { taigiOk = false; render(); } };
+    taigiAudio[file] = a;
+  }
+  return taigiAudio[file];
+}
+function playTaigi(file) {
+  const a = taigiEl(file);
+  a.currentTime = 0;
+  const p = a.play();
+  if (p && p.catch) p.catch(() => { if (taigiOk) { taigiOk = false; render(); } });
+}
+// 先預載，載不到就在使用者按到之前先把按鈕收掉
+Object.values(TAIGI).forEach(t => taigiEl(t.file));
 
 /* 一段極短的噪音爆點，拍手聲的積木 */
 function noiseBurst(t, dur, level, freq, q) {
@@ -529,8 +576,26 @@ function renderLevel() {
       <div class="progress">${dots}</div>
     </div>
     <div class="hint-box">${lv.hint}</div>
+    ${lv.taigi && taigiOk ? renderTaigiBox() : ""}
     <div class="card-list">${cards}</div>
     ${done}`;
+}
+
+/* 用台語的早頓／後尾當高低對照，兩音節的重音一聽就分得出來 */
+function renderTaigiBox() {
+  const row = (t, eg) => `
+    <div class="taigi-row">
+      <span class="taigi-mark">${t.mark}</span>
+      <div class="taigi-main">
+        <b>${t.name}</b> <span class="taigi-rom">${t.rom}</span>
+        <div class="taigi-note">${t.shape}，像 ${eg}</div>
+      </div>
+      <button class="taigi-play" onclick="playTaigi('${t.file}')">🔊 台語</button>
+    </div>`;
+  return `<div class="taigi-box">
+    ${row(TAIGI.first, "<b>DOC</b>tor")}
+    ${row(TAIGI.second, "a<b>GAIN</b>")}
+  </div>`;
 }
 
 function renderCard(li, wi) {
@@ -574,9 +639,16 @@ function renderCard(li, wi) {
       return `<span class="syl-piece ${cls}">${txt}</span>`;
     }).join(`<span class="sep">·</span>`);
     // 數音節那關要講出幾個音節；找重音那幾關不寫字，靠卡片變綠表示答對
+    // 兩音節那關順便標出它是早頓型還是後尾型
+    const t = (LEVELS[li].taigi && taigiOk && w.syl.length === 2)
+      ? (w.stress === 0 ? TAIGI.first : TAIGI.second) : null;
+    const badge = t ? `<div class="taigi-badge">
+        <span class="m">${t.mark}</span> 跟 <b>${t.name}</b> ${t.rom} 一樣
+        <button class="taigi-play" onclick="playTaigi('${t.file}')">🔊 台語</button>
+      </div>` : "";
     body = (countMode ? `<div class="feedback ok">✅ 答對了，${w.syl.length} 個音節</div>` : "")
       + `<div class="reveal">${pieces}</div>
-      <div class="ipa-line"><span>${w.ipa}</span></div>`;
+      <div class="ipa-line"><span>${w.ipa}</span></div>${badge}`;
   }
 
   // 答對的那一刻就變綠（不等 900ms 後的揭曉），畫面才不會空著
